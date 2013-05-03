@@ -78,9 +78,20 @@ trap(struct trapframe *tf)
     lapiceoi();
     break;
   case T_PGFLT:
-      //si la pagina es de usuario y no esta habilitada para escritura
-      //Restauramos bits.Sino goto al default
+      /* 0- Controlar que el fallo de pagina sea porque un usuario quiso 
+       *        modificar una pagina del padre que estaba protegida con
+       *        escritura. Si no es asi continuar a default...
+       * 1- Ver como recuperar la pagina que quiere escribir el proceso. En la
+       *        estructura proc tenemos el directorio de pagina, pero hay que 
+       *        saber en que tabla esta y cual es la pagina... tal vez este en 
+       *        algun registro del micro cr2 tal vez?
+       * 2- Ver como hacer cuando tiene mas de un hijo o cuando el padre quiere
+       *        modificar esa pagina... contador de referencias?
+       * 3- Copiar paginas, actualizar pde y restaurar bits de escritura
+       *        donde corresponda
+       */
       cprintf("TENEMOS NUESTRO TRAP !!!\n");
+      break;
           
    
   //PAGEBREAK: 13
