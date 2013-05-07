@@ -17,6 +17,7 @@ static struct proc *initproc;
 int nextpid = 1;
 extern void forkret(void);
 extern void trapret(void);
+extern void clearptew(pde_t *pgdir, char *uva);
 
 static void wakeup1(void *chan);
 
@@ -25,6 +26,18 @@ pinit(void)
 {
   initlock(&ptable.lock, "ptable");
 }
+
+
+//Recorrer todas las tablas de procesos y imprimir los pid
+void imprimirPidProc(){
+    struct proc *p;
+    cprintf("Tabla de Procesos: \n");
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        cprintf("Proceso name%s: procesoPID:%d\n",p->name,p->pid);
+    }
+}
+
+
 
 //PAGEBREAK: 32
 // Look in the process table for an UNUSED proc.
@@ -134,30 +147,53 @@ fork(void)
   // Allocate process.
   if((np = allocproc()) == 0){
     return -1;
-  }
- 
-  // Copy process state from p.
-  if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
-    kfree(np->kstack);
-    np->kstack = 0;
-    np->state = UNUSED;
-    return -1;
-  }
-  np->sz = proc->sz;
-  np->parent = proc;
-  *np->tf = *proc->tf;
+  } 
+  if (np->pid==1 || np->pid==2){
+      cprintf("ACA ESTAMOS np->pid==1 || np->pid==2 \n");
+        // Copy process state from p.
+        if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
+        kfree(np->kstack);
+        np->kstack = 0;
+        np->state = UNUSED;
+        return -1;
+        }
+        np->sz = proc->sz;
+        np->parent = proc;
+        *np->tf = *proc->tf;
 
-  // Clear %eax so that fork returns 0 in the child.
-  np->tf->eax = 0;
+        // Clear %eax so that fork returns 0 in the child.
+        np->tf->eax = 0;
 
-  for(i = 0; i < NOFILE; i++)
-    if(proc->ofile[i])
-      np->ofile[i] = filedup(proc->ofile[i]);
-  np->cwd = idup(proc->cwd);
- 
-  pid = np->pid;
-  np->state = RUNNABLE;
-  safestrcpy(np->name, proc->name, sizeof(proc->name));
+        for(i = 0; i < NOFILE; i++)
+        if(proc->ofile[i])
+          np->ofile[i] = filedup(proc->ofile[i]);
+        np->cwd = idup(proc->cwd);
+
+        pid = np->pid;
+        np->state = RUNNABLE;
+        safestrcpy(np->name, proc->name, sizeof(proc->name));  
+  }else {
+        cprintf("ACA ESTAMOS ELSE\n");
+        for(i = 0; i < proc->sz; i += PGSIZE){
+            clearptew(proc->pgdir,(char*)i);
+        }
+        np->pgdir =proc->pgdir;
+        np->sz = proc->sz;
+        np->parent = proc;
+        *np->tf = *proc->tf;
+
+        // Clear %eax so that fork returns 0 in the child.
+        np->tf->eax = 0;
+
+        for(i = 0; i < NOFILE; i++)
+        if(proc->ofile[i])
+          np->ofile[i] = filedup(proc->ofile[i]);
+        np->cwd = idup(proc->cwd);
+
+        pid = np->pid;
+        np->state = RUNNABLE;
+        safestrcpy(np->name, proc->name, sizeof(proc->name));
+  }
   return pid;
 }
 
