@@ -304,12 +304,17 @@ clearpteu(pde_t *pgdir, char *uva)
   *pte &= ~PTE_U;
 }
 
-// Verifica si es pagina de kernel o no.
-int
-esPaginaKernel(pte_t *pte){
-    //si es cero estamos en el kernel y devolvemos 
-    //true caso contrario false.
-    return ((*pte & PTE_U) == 0);
+// Clear PTE_W on a page. Used to create an inaccessible
+// page beneath the user stack.
+void
+clearptew(pde_t *pgdir, char *uva)
+{
+    pte_t *pte;
+    if((pte = walkpgdir(pgdir, uva, 0)) == 0)
+        panic("clearptew errror en el walkpgdir ");
+    if(pte == 0)
+      panic("clearptew");
+    *pte &= ~PTE_W;
 }
 
 // Given a parent process's page table, create a copy
@@ -321,7 +326,6 @@ copyuvm(pde_t *pgdir, uint sz)
   pte_t *pte;
   uint pa, i;
   char *mem;
-  int primerPagina = 1;
 
   if((d = setupkvm()) == 0)
     return 0;
@@ -330,29 +334,10 @@ copyuvm(pde_t *pgdir, uint sz)
       panic("copyuvm: pte should exist");
     if(!(*pte & PTE_P))
       panic("copyuvm: page not present");
-      
-    //solo para una pagina 
-    // 1 hacer un if que pregunte si es pagina de usuario y si es de usuario 
-    //ponerla como no escribible y preguntar si es primera pagina para 
-    //copiarsela al proceso hijo. Si no es de usuario, copiarla al hijo
-    //(o sea hacer lo que hacia antes)
-    if (!esPaginaKernel(pte)){
-                if (primerPagina){
-                    primerPagina = 0;
-                    pa = PTE_ADDR(*pte);
-                    if((mem = kalloc()) == 0)
-                      goto bad;
-                    memmove(mem, (char*)p2v(pa), PGSIZE);
-                } else{
-                    *pte = ((*pte) & (~PTE_W));
-                }    
-    }else{//si es pagina de kernel se hacia como antes
-        pa = PTE_ADDR(*pte);
-        if((mem = kalloc()) == 0)
-          goto bad;
-        memmove(mem, (char*)p2v(pa), PGSIZE);
-    }
-    
+    pa = PTE_ADDR(*pte);
+    if((mem = kalloc()) == 0)
+      goto bad;
+    memmove(mem, (char*)p2v(pa), PGSIZE);
     if(mappages(d, (void*)i, PGSIZE, v2p(mem), PTE_W|PTE_U) < 0)
       goto bad;
   }

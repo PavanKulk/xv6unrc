@@ -2,9 +2,79 @@
 <configurationDescriptor version="88">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="xv6">
-      <df name="Nueva Carpeta">
-      </df>
       <in>asm.h</in>
+      <in>bio.c</in>
+      <in>bootasm.S</in>
+      <in>bootmain.c</in>
+      <in>buf.h</in>
+      <in>cat.c</in>
+      <in>console.c</in>
+      <in>defs.h</in>
+      <in>echo.c</in>
+      <in>elf.h</in>
+      <in>entry.S</in>
+      <in>entryother.S</in>
+      <in>exec.c</in>
+      <in>fcntl.h</in>
+      <in>file.c</in>
+      <in>file.h</in>
+      <in>forktest.c</in>
+      <in>fs.c</in>
+      <in>fs.h</in>
+      <in>grep.c</in>
+      <in>ide.c</in>
+      <in>init.c</in>
+      <in>initcode.S</in>
+      <in>ioapic.c</in>
+      <in>kalloc.c</in>
+      <in>kbd.c</in>
+      <in>kbd.h</in>
+      <in>kill.c</in>
+      <in>lapic.c</in>
+      <in>ln.c</in>
+      <in>log.c</in>
+      <in>ls.c</in>
+      <in>main.c</in>
+      <in>memide.c</in>
+      <in>memlayout.h</in>
+      <in>mkdir.c</in>
+      <in>mkfs.c</in>
+      <in>mmu.h</in>
+      <in>mp.c</in>
+      <in>mp.h</in>
+      <in>param.h</in>
+      <in>picirq.c</in>
+      <in>pipe.c</in>
+      <in>printf.c</in>
+      <in>proc.c</in>
+      <in>proc.h</in>
+      <in>rm.c</in>
+      <in>sh.c</in>
+      <in>spinlock.c</in>
+      <in>spinlock.h</in>
+      <in>stat.h</in>
+      <in>stressfs.c</in>
+      <in>string.c</in>
+      <in>swtch.S</in>
+      <in>syscall.c</in>
+      <in>syscall.h</in>
+      <in>sysfile.c</in>
+      <in>sysproc.c</in>
+      <in>timer.c</in>
+      <in>trap.c</in>
+      <in>trapasm.S</in>
+      <in>traps.h</in>
+      <in>types.h</in>
+      <in>uart.c</in>
+      <in>ulib.c</in>
+      <in>umalloc.c</in>
+      <in>user.h</in>
+      <in>usertests.c</in>
+      <in>usys.S</in>
+      <in>vm.c</in>
+      <in>wc.c</in>
+      <in>x86.h</in>
+      <in>zombie.c</in>
     </df>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>

@@ -90,8 +90,10 @@ trap(struct trapframe *tf)
        * 3- Copiar paginas, actualizar pde y restaurar bits de escritura
        *        donde corresponda
        */
-      cprintf("TENEMOS NUESTRO TRAP !!!\n");
-      break;
+      if (tf->err== 7){
+        cprintf("TENEMOS NUESTRO TRAP !!!\n");
+        break;
+      }
           
    
   //PAGEBREAK: 13
