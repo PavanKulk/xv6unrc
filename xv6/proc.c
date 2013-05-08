@@ -28,13 +28,26 @@ pinit(void)
 }
 
 
-//Recorrer todas las tablas de procesos y imprimir los pid
-void imprimirPidProc(){
+//Recorrer todas las tablas de procesos
+ struct proc* recorrerTablaProcesos(pde_t *pgdir){
     struct proc *p;
     cprintf("Tabla de Procesos: \n");
+    acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        cprintf("Proceso name%s: procesoPID:%d\n",p->name,p->pid);
+        
+        if (p->pid == 0){
+            release(&ptable.lock);
+            return 0;
+        }
+        if (pgdir==p->pgdir){
+            release(&ptable.lock);
+            return p;           
+        }
+        //cprintf("ProcesoName: %s ProcesoPID: %d ProcesoPadre: %s\n",p->name,p->pid,p->parent->name);
     }
+    release(&ptable.lock);
+    return 0;
+    //cprintf("Fin Tabla de Procesos\n");
 }
 
 
@@ -149,7 +162,7 @@ fork(void)
     return -1;
   } 
   if (np->pid==1 || np->pid==2){
-      cprintf("ACA ESTAMOS np->pid==1 || np->pid==2 \n");
+      cprintf("np->pid==%d\n",np->pid);
         // Copy process state from p.
         if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
         kfree(np->kstack);
@@ -173,7 +186,7 @@ fork(void)
         np->state = RUNNABLE;
         safestrcpy(np->name, proc->name, sizeof(proc->name));  
   }else {
-        cprintf("ACA ESTAMOS ELSE\n");
+        cprintf("np->pid==%d\n",np->pid);
         for(i = 0; i < proc->sz; i += PGSIZE){
             clearptew(proc->pgdir,(char*)i);
         }
