@@ -13,7 +13,8 @@ struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
 struct spinlock tickslock;
 uint ticks;
-extern struct proc* recorrerTablaProcesos(pde_t *pgdir);
+extern struct proc* recorrerTablaProcesos(struct proc* proceso, uint pageFault,int* compartenDirectorio);
+extern void setptew(pde_t* pgdir, char* uva);
 
 void
 tvinit(void)
@@ -92,15 +93,35 @@ trap(struct trapframe *tf)
        *        donde corresponda
        */
       if (tf->err== 7){
-        struct proc* resultado = recorrerTablaProcesos(proc->pgdir);
-        if (resultado)
-            cprintf("encontre el procesirijillo !!!\n");
-        cprintf("TENEMOS NUESTRO TRAP !!!\n");
-           // panic("hasta aca yegue he dicho....");
+        int compartenDirectorio = 0;
+        struct proc* resultado = recorrerTablaProcesos(proc,rcr2(),&compartenDirectorio);
+        if (resultado){
+            if (compartenDirectorio){ //debemos copiarle todo directorio tabla y pagina
+                int i;
+                for(i = 0; i < proc->sz; i += PGSIZE){
+                    setptew(proc->pgdir,(char*)i);
+                }
+                cprintf("resultado->pgdir %d, resultado->sz %d\n",resultado->pgdir,resultado->sz);
+                cprintf("proc->pgdir %d, proc->sz %d\n",proc->pgdir,proc->sz);
+                if((resultado->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
+                    kfree(resultado->kstack);
+                    resultado->kstack = 0;
+                    resultado->state = UNUSED;
+                    panic("ERROR COPIANDO MEMORIA EN FALLO DE PAGINA....");
+                    //return -1;
+                }
+                cprintf("resultado->pgdir %d, resultado->sz %d\n",resultado->pgdir,resultado->sz);
+                cprintf("proc->pgdir %d, proc->sz %d\n",proc->pgdir,proc->sz);
+
+                
+            }else{
+                cprintf("PASA POR ACA !!!\n");
+            }
+        }else
+            cprintf(" NO ENCONTRO PROCESO!!!\n");
         break;
       }
-          
-   
+      
   //PAGEBREAK: 13
   default:
     if(proc == 0 || (tf->cs&3) == 0){

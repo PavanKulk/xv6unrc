@@ -5,38 +5,51 @@
       <in>asm.h</in>
       <in>bio.c</in>
       <in>bootasm.S</in>
+      <in>bootblock.asm</in>
       <in>bootmain.c</in>
       <in>buf.h</in>
+      <in>cat.asm</in>
       <in>cat.c</in>
       <in>console.c</in>
       <in>defs.h</in>
+      <in>echo.asm</in>
       <in>echo.c</in>
       <in>elf.h</in>
       <in>entry.S</in>
       <in>entryother.S</in>
+      <in>entryother.asm</in>
       <in>exec.c</in>
       <in>fcntl.h</in>
       <in>file.c</in>
       <in>file.h</in>
+      <in>forktest.asm</in>
       <in>forktest.c</in>
       <in>fs.c</in>
       <in>fs.h</in>
+      <in>grep.asm</in>
       <in>grep.c</in>
       <in>ide.c</in>
+      <in>init.asm</in>
       <in>init.c</in>
       <in>initcode.S</in>
+      <in>initcode.asm</in>
       <in>ioapic.c</in>
       <in>kalloc.c</in>
       <in>kbd.c</in>
       <in>kbd.h</in>
+      <in>kernel.asm</in>
+      <in>kill.asm</in>
       <in>kill.c</in>
       <in>lapic.c</in>
+      <in>ln.asm</in>
       <in>ln.c</in>
       <in>log.c</in>
+      <in>ls.asm</in>
       <in>ls.c</in>
       <in>main.c</in>
       <in>memide.c</in>
       <in>memlayout.h</in>
+      <in>mkdir.asm</in>
       <in>mkdir.c</in>
       <in>mkfs.c</in>
       <in>mmu.h</in>
@@ -48,11 +61,14 @@
       <in>printf.c</in>
       <in>proc.c</in>
       <in>proc.h</in>
+      <in>rm.asm</in>
       <in>rm.c</in>
+      <in>sh.asm</in>
       <in>sh.c</in>
       <in>spinlock.c</in>
       <in>spinlock.h</in>
       <in>stat.h</in>
+      <in>stressfs.asm</in>
       <in>stressfs.c</in>
       <in>string.c</in>
       <in>swtch.S</in>
@@ -69,11 +85,15 @@
       <in>ulib.c</in>
       <in>umalloc.c</in>
       <in>user.h</in>
+      <in>usertests.asm</in>
       <in>usertests.c</in>
       <in>usys.S</in>
+      <in>vectors.S</in>
       <in>vm.c</in>
+      <in>wc.asm</in>
       <in>wc.c</in>
       <in>x86.h</in>
+      <in>zombie.asm</in>
       <in>zombie.c</in>
     </df>
   </logicalFolder>
