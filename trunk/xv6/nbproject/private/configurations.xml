@@ -2,42 +2,77 @@
 <configurationDescriptor version="88">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="xv6">
+      <df name="user">
+        <in>cat.c</in>
+        <in>echo.c</in>
+        <in>fcntl.h</in>
+        <in>forktest.c</in>
+        <in>fs.h</in>
+        <in>grep.c</in>
+        <in>init.c</in>
+        <in>kill.c</in>
+        <in>ln.c</in>
+        <in>ls.c</in>
+        <in>memlayout.h</in>
+        <in>mkdir.c</in>
+        <in>param.h</in>
+        <in>printf.c</in>
+        <in>rm.c</in>
+        <in>sh.c</in>
+        <in>stat.h</in>
+        <in>stressfs.c</in>
+        <in>syscall.h</in>
+        <in>traps.h</in>
+        <in>types.h</in>
+        <in>ulib.c</in>
+        <in>umalloc.c</in>
+        <in>user.h</in>
+        <in>usertests.c</in>
+        <in>usys.S</in>
+        <in>wc.c</in>
+        <in>x86.h</in>
+        <in>zombie.c</in>
+      </df>
       <in>asm.h</in>
       <in>bio.c</in>
       <in>bootasm.S</in>
+      <in>bootblock.asm</in>
       <in>bootmain.c</in>
       <in>buf.h</in>
-      <in>cat.c</in>
+      <in>cat.asm</in>
       <in>console.c</in>
       <in>defs.h</in>
-      <in>echo.c</in>
+      <in>echo.asm</in>
       <in>elf.h</in>
       <in>entry.S</in>
       <in>entryother.S</in>
+      <in>entryother.asm</in>
       <in>exec.c</in>
       <in>fcntl.h</in>
       <in>file.c</in>
       <in>file.h</in>
-      <in>forktest.c</in>
+      <in>forktest.asm</in>
       <in>fs.c</in>
       <in>fs.h</in>
-      <in>grep.c</in>
+      <in>grep.asm</in>
       <in>ide.c</in>
-      <in>init.c</in>
+      <in>init.asm</in>
       <in>initcode.S</in>
+      <in>initcode.asm</in>
       <in>ioapic.c</in>
       <in>kalloc.c</in>
       <in>kbd.c</in>
       <in>kbd.h</in>
-      <in>kill.c</in>
+      <in>kernel.asm</in>
+      <in>kill.asm</in>
       <in>lapic.c</in>
-      <in>ln.c</in>
+      <in>ln.asm</in>
       <in>log.c</in>
-      <in>ls.c</in>
+      <in>ls.asm</in>
       <in>main.c</in>
       <in>memide.c</in>
       <in>memlayout.h</in>
-      <in>mkdir.c</in>
+      <in>mkdir.asm</in>
       <in>mkfs.c</in>
       <in>mmu.h</in>
       <in>mp.c</in>
@@ -45,15 +80,14 @@
       <in>param.h</in>
       <in>picirq.c</in>
       <in>pipe.c</in>
-      <in>printf.c</in>
       <in>proc.c</in>
       <in>proc.h</in>
-      <in>rm.c</in>
-      <in>sh.c</in>
+      <in>rm.asm</in>
+      <in>sh.asm</in>
       <in>spinlock.c</in>
       <in>spinlock.h</in>
       <in>stat.h</in>
-      <in>stressfs.c</in>
+      <in>stressfs.asm</in>
       <in>string.c</in>
       <in>swtch.S</in>
       <in>syscall.c</in>
@@ -66,15 +100,13 @@
       <in>traps.h</in>
       <in>types.h</in>
       <in>uart.c</in>
-      <in>ulib.c</in>
-      <in>umalloc.c</in>
       <in>user.h</in>
-      <in>usertests.c</in>
-      <in>usys.S</in>
+      <in>usertests.asm</in>
+      <in>vectors.S</in>
       <in>vm.c</in>
-      <in>wc.c</in>
+      <in>wc.asm</in>
       <in>x86.h</in>
-      <in>zombie.c</in>
+      <in>zombie.asm</in>
     </df>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
