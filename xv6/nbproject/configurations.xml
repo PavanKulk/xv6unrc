@@ -5,51 +5,81 @@
       <itemPath>/dev/null</itemPath>
     </logicalFolder>
     <df root="." name="xv6">
+      <df name="user">
+        <in>cat.c</in>
+        <in>echo.c</in>
+        <in>fcntl.h</in>
+        <in>forktest.c</in>
+        <in>fs.h</in>
+        <in>grep.c</in>
+        <in>init.c</in>
+        <in>kill.c</in>
+        <in>ln.c</in>
+        <in>ls.c</in>
+        <in>memlayout.h</in>
+        <in>mkdir.c</in>
+        <in>param.h</in>
+        <in>printf.c</in>
+        <in>rm.c</in>
+        <in>sh.c</in>
+        <in>stat.h</in>
+        <in>stressfs.c</in>
+        <in>syscall.h</in>
+        <in>traps.h</in>
+        <in>types.h</in>
+        <in>ulib.c</in>
+        <in>umalloc.c</in>
+        <in>user.h</in>
+        <in>usertests.c</in>
+        <in>wc.c</in>
+        <in>x86.h</in>
+        <in>zombie.c</in>
+      </df>
       <in>bio.c</in>
       <in>bootmain.c</in>
-      <in>cat.c</in>
+      <in>buf.h</in>
       <in>console.c</in>
-      <in>echo.c</in>
+      <in>defs.h</in>
+      <in>elf.h</in>
       <in>exec.c</in>
+      <in>fcntl.h</in>
       <in>file.c</in>
-      <in>forktest.c</in>
+      <in>file.h</in>
       <in>fs.c</in>
-      <in>grep.c</in>
+      <in>fs.h</in>
       <in>ide.c</in>
-      <in>init.c</in>
       <in>ioapic.c</in>
       <in>kalloc.c</in>
       <in>kbd.c</in>
-      <in>kill.c</in>
+      <in>kbd.h</in>
       <in>lapic.c</in>
-      <in>ln.c</in>
       <in>log.c</in>
-      <in>ls.c</in>
       <in>main.c</in>
-      <in>mkdir.c</in>
+      <in>memlayout.h</in>
       <in>mkfs.c</in>
+      <in>mmu.h</in>
       <in>mp.c</in>
+      <in>mp.h</in>
+      <in>param.h</in>
       <in>picirq.c</in>
       <in>pipe.c</in>
-      <in>printf.c</in>
       <in>proc.c</in>
-      <in>rm.c</in>
-      <in>sh.c</in>
+      <in>proc.h</in>
       <in>spinlock.c</in>
-      <in>stressfs.c</in>
+      <in>spinlock.h</in>
+      <in>stat.h</in>
       <in>string.c</in>
       <in>syscall.c</in>
+      <in>syscall.h</in>
       <in>sysfile.c</in>
       <in>sysproc.c</in>
       <in>timer.c</in>
       <in>trap.c</in>
+      <in>traps.h</in>
+      <in>types.h</in>
       <in>uart.c</in>
-      <in>ulib.c</in>
-      <in>umalloc.c</in>
-      <in>usertests.c</in>
       <in>vm.c</in>
-      <in>wc.c</in>
-      <in>zombie.c</in>
+      <in>x86.h</in>
     </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -92,11 +122,13 @@
           </incDir>
         </cTool>
       </item>
-      <item path="cat.c" ex="false" tool="0" flavor2="0">
+      <item path="buf.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="console.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="echo.c" ex="false" tool="0" flavor2="0">
+      <item path="defs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="elf.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="exec.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -107,17 +139,24 @@
           </incDir>
         </cTool>
       </folder>
+      <folder path="xv6/user">
+        <cTool>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
+        </cTool>
+      </folder>
+      <item path="fcntl.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="file.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="forktest.c" ex="false" tool="0" flavor2="0">
+      <item path="file.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="fs.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="grep.c" ex="false" tool="0" flavor2="0">
+      <item path="fs.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="ide.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="init.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="ioapic.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -125,43 +164,45 @@
       </item>
       <item path="kbd.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="kill.c" ex="false" tool="0" flavor2="0">
+      <item path="kbd.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lapic.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="ln.c" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="log.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="ls.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="mkdir.c" ex="false" tool="0" flavor2="0">
+      <item path="memlayout.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="mkfs.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="mmu.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="mp.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="mp.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="param.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="picirq.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="pipe.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="printf.c" ex="false" tool="0" flavor2="0">
-      </item>
       <item path="proc.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="rm.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="sh.c" ex="false" tool="0" flavor2="0">
+      <item path="proc.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="spinlock.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="stressfs.c" ex="false" tool="0" flavor2="0">
+      <item path="spinlock.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="stat.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="string.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="syscall.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="syscall.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="sysfile.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -171,19 +212,71 @@
       </item>
       <item path="trap.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="traps.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="types.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="uart.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="ulib.c" ex="false" tool="0" flavor2="0">
+      <item path="user/cat.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="umalloc.c" ex="false" tool="0" flavor2="0">
+      <item path="user/echo.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="usertests.c" ex="false" tool="0" flavor2="0">
+      <item path="user/fcntl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="user/forktest.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/fs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="user/grep.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/init.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/kill.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/ln.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/ls.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/memlayout.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="user/mkdir.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/param.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="user/printf.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/rm.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/sh.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/stat.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="user/stressfs.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/syscall.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="user/traps.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="user/types.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="user/ulib.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/umalloc.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/user.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="user/usertests.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/wc.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="user/x86.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="user/zombie.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="vm.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="wc.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="zombie.c" ex="false" tool="0" flavor2="0">
+      <item path="x86.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>
