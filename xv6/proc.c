@@ -17,7 +17,8 @@ static struct proc *initproc;
 int nextpid = 1;
 extern void forkret(void);
 extern void trapret(void);
-
+extern void clearptew(pde_t *pgdir, char *uva);
+extern void setptew(pde_t *pgdir, char *uva);
 static void wakeup1(void *chan);
 
 void
@@ -121,10 +122,126 @@ growproc(int n)
   switchuvm(proc);
   return 0;
 }
+//Recorrer todas las tablas de procesos
+ struct proc* recorrerTablaProcesos( uint registroCR2,int* compartenDirectorio){ 
+    struct proc *p;
+//  pte_t * entryTablePage= wpgdir(pgdir,(void *)registroCR2, 0);
+    //cprintf("proceso->pid: %d\n", proceso->pid);
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        
+    //cprintf("p->pid: %d\n", p->pid);
+        if (p->pid == 0){
+            release(&ptable.lock);
+            return 0;
+        }
+        if (proc->pgdir == p->pgdir && p!=proc){
+            *compartenDirectorio=1;
+
+            //cprintf("Retorno p->pid %d \n", p->pid);
+            return p;           
+        }/*else{ //no comparten directorio
+            compartenDirectorio = 0;
+            int i,j;
+            for( i= 0 ; i < 1024 ; i++){//por cada entrada en directorio
+                pte_t * entradaTabla= (pte_t *) PTE_ADDR(&p->pgdir[i]);
+                for(j= 0 ; j < 1024 ; j++){//por cada entrada en la tabla de pagina
+                    cprintf("entryTablePage !!!%d\n",entryTablePage);
+                    cprintf("entradaTabla !!!%d\n",&entradaTabla[j]);
+                    if (entryTablePage==&entradaTabla[j]){
+                        cprintf("IGUAL TABLA !!!\n");
+                        release(&ptable.lock);
+                        return p;
+                    }
+                }
+            }
+            
+        }*/
+        //cprintf("ProcesoName: %s ProcesoPID: %d ProcesoPadre: %s\n",p->name,p->pid,p->parent->name);
+    }
+    cprintf("No deberia imprimirse esto...");
+    return 0;
+    //cprintf("Fin Tabla de Procesos\n");
+}
+ 
+ void trapCOW(){
+     acquire(&ptable.lock);
+     if (proc->tf->err & PTE_W ){//hacer mascara para filtrar el bit 2 del tf->err este en 1
+        cprintf(" estoy en el trapCOW() y entro bien con la mascara!!!\n");
+        int compartenDirectorio = 0;
+        if (rcr2() >= 0 && proc->sz > rcr2()){//El valor del rcr2 es correcto esta entre 0 y size.
+            struct proc* resultado = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
+            if (resultado){
+                if (compartenDirectorio){ //debemos copiarle todo directorio tabla y pagina
+                    int i;
+                    for(i = 0; i < proc->sz; i += PGSIZE){
+                        setptew(proc->pgdir,(char*)i);
+                    }
+                    if((resultado->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
+                        kfree(resultado->kstack);
+                        resultado->kstack = 0;
+                        resultado->state = UNUSED;
+                        panic("ERROR COPIANDO copyuvm-------------> en trapCOW()");
+                        //return -1;
+                    }
+
+                }else{
+                    cprintf("NO COMPARTEN DIRECTORIO !!!\n");
+                }
+            }else
+                cprintf(" NO ENCONTRO PROCESO!!!-------------> en trapCOW()\n");
+        }    
+      }
+     release(&ptable.lock);
+ }
 
 // Create a new process copying p as the parent.
 // Sets up stack to return as if from system call.
 // Caller must set state of returned proc to RUNNABLE.
+int
+fork(void)
+{
+  int i, pid;
+  struct proc *np;
+
+  // Allocate process.
+  if((np = allocproc()) == 0){
+    return -1;
+  } 
+  if (np->pid==1 || np->pid==2){
+      //cprintf("np->pid==%d\n",np->pid);
+        // Copy process state from p.
+        if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
+            kfree(np->kstack);
+            np->kstack = 0;
+            np->state = UNUSED;
+            return -1;
+        }
+        
+  }else {
+        //cprintf("np->pid==%d\n",np->pid);
+        for(i = 0; i < proc->sz; i += PGSIZE){
+            clearptew(proc->pgdir,(char*)i);
+        }
+        np->pgdir =proc->pgdir;
+  }
+  np->sz = proc->sz;
+  np->parent = proc;
+  *np->tf = *proc->tf;
+  // Clear %eax so that fork returns 0 in the child.
+  np->tf->eax = 0;
+
+  for(i = 0; i < NOFILE; i++)
+    if(proc->ofile[i])
+      np->ofile[i] = filedup(proc->ofile[i]);
+  np->cwd = idup(proc->cwd);
+
+  pid = np->pid;
+  np->state = RUNNABLE;
+  safestrcpy(np->name, proc->name, sizeof(proc->name));
+  //cprintf("nombre %s pid %d ...", proc->name, pid);
+  return pid;
+}
+/*
 int
 fork(void)
 {
@@ -159,6 +276,7 @@ fork(void)
   safestrcpy(np->name, proc->name, sizeof(proc->name));
   return pid;
 }
+*/
 
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
@@ -223,7 +341,7 @@ wait(void)
         // Found one.
         pid = p->pid;
         kfree(p->kstack);
-        p->kstack = 0;
+        p->kstack = 0;/// cuidado, aca hay que ver que no libere memoria de los procesos hermanos
         freevm(p->pgdir);
         p->state = UNUSED;
         p->pid = 0;

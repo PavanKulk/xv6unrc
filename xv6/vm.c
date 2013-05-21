@@ -64,6 +64,10 @@ walkpgdir(pde_t *pgdir, const void *va, int alloc)
   return &pgtab[PTX(va)];
 }
 
+pte_t * wpgdir(pde_t *pgdir, const void *va, int alloc){
+    return walkpgdir(pgdir,va, alloc);
+}
+
 // Create PTEs for virtual addresses starting at va that refer to
 // physical addresses starting at pa. va and size might not
 // be page-aligned.
@@ -302,6 +306,30 @@ clearpteu(pde_t *pgdir, char *uva)
   if(pte == 0)
     panic("clearpteu");
   *pte &= ~PTE_U;
+}
+
+// Clear PTE_W on a page. 
+void
+clearptew(pde_t *pgdir, char *uva)
+{
+    pte_t *pte;
+    if((pte = walkpgdir(pgdir, uva, 0)) == 0)
+        panic("clearptew errror en el walkpgdir ");
+    if(pte == 0)
+      panic("clearptew");
+    *pte &= ~PTE_W;
+}
+
+// Set PTE_W on a page. 
+void
+setptew(pde_t *pgdir, char *uva)
+{
+    pte_t *pte;
+    if((pte = walkpgdir(pgdir, uva, 0)) == 0)
+        panic("setptew errror en el walkpgdir ");
+    if(pte == 0)
+      panic("setptew");
+    *pte |= PTE_W;
 }
 
 // Given a parent process's page table, create a copy
