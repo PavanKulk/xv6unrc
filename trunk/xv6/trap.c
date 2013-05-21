@@ -13,6 +13,8 @@ struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
 struct spinlock tickslock;
 uint ticks;
+extern void trapCOW();
+
 
 void
 tvinit(void)
@@ -77,7 +79,10 @@ trap(struct trapframe *tf)
             cpu->id, tf->cs, tf->eip);
     lapiceoi();
     break;
-   
+  case T_PGFLT:
+                trapCOW();
+                break;
+      
   //PAGEBREAK: 13
   default:
     if(proc == 0 || (tf->cs&3) == 0){
