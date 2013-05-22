@@ -163,35 +163,34 @@ growproc(int n)
     //cprintf("Fin Tabla de Procesos\n");
 }
  
- void trapCOW(){
-     acquire(&ptable.lock);
-     if (proc->tf->err & PTE_W ){//hacer mascara para filtrar el bit 2 del tf->err este en 1
+ void trapCOW(){    
+    int compartenDirectorio = 0;
+    if (rcr2() >= 0 && proc->sz > rcr2()){//El valor del rcr2 es correcto esta entre 0 y size.
+        acquire(&ptable.lock);
         cprintf(" estoy en el trapCOW() y entro bien con la mascara!!!\n");
-        int compartenDirectorio = 0;
-        if (rcr2() >= 0 && proc->sz > rcr2()){//El valor del rcr2 es correcto esta entre 0 y size.
-            struct proc* resultado = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
-            if (resultado){
-                if (compartenDirectorio){ //debemos copiarle todo directorio tabla y pagina
-                    int i;
-                    for(i = 0; i < proc->sz; i += PGSIZE){
-                        setptew(proc->pgdir,(char*)i);
-                    }
-                    if((resultado->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
-                        kfree(resultado->kstack);
-                        resultado->kstack = 0;
-                        resultado->state = UNUSED;
-                        panic("ERROR COPIANDO copyuvm-------------> en trapCOW()");
-                        //return -1;
-                    }
-
-                }else{
-                    cprintf("NO COMPARTEN DIRECTORIO !!!\n");
+        struct proc* resultado = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
+        if (resultado){
+            if (compartenDirectorio){ //debemos copiarle todo directorio tabla y pagina
+                int i;
+                for(i = 0; i < proc->sz; i += PGSIZE){
+                    setptew(proc->pgdir,(char*)i);
                 }
-            }else
-                cprintf(" NO ENCONTRO PROCESO!!!-------------> en trapCOW()\n");
-        }    
-      }
-     release(&ptable.lock);
+                if((resultado->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
+                    kfree(resultado->kstack);
+                    resultado->kstack = 0;
+                    resultado->state = UNUSED;
+                    panic("ERROR COPIANDO copyuvm-------------> en trapCOW()");
+                    //return -1;
+                }
+
+            }else{
+                cprintf("NO COMPARTEN DIRECTORIO !!!\n");
+            }
+        }else
+            cprintf(" NO ENCONTRO PROCESO!!!-------------> en trapCOW()\n");
+        release(&ptable.lock);
+     } 
+     
  }
 
 // Create a new process copying p as the parent.
@@ -207,7 +206,7 @@ fork(void)
   if((np = allocproc()) == 0){
     return -1;
   } 
-  if (np->pid==1 || np->pid==2){
+  if (proc->pid==1 || proc->pid==2){
       //cprintf("np->pid==%d\n",np->pid);
         // Copy process state from p.
         if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
@@ -219,10 +218,12 @@ fork(void)
         
   }else {
         //cprintf("np->pid==%d\n",np->pid);
-        for(i = 0; i < proc->sz; i += PGSIZE){
+        for(i = 0; i < proc->sz; i += PGSIZE){ //LAURA: que pasa si proc->sz==3 paginas? como esta aca la ultima no se copia, pero en otro casa si...
             clearptew(proc->pgdir,(char*)i);
         }
+        //cprintf(" tamaño de proc= %d, i= %d",proc->sz, i);
         np->pgdir =proc->pgdir;
+        
   }
   np->sz = proc->sz;
   np->parent = proc;
@@ -341,8 +342,16 @@ wait(void)
         // Found one.
         pid = p->pid;
         kfree(p->kstack);
-        p->kstack = 0;/// cuidado, aca hay que ver que no libere memoria de los procesos hermanos
-        freevm(p->pgdir);
+        p->kstack = 0;
+        // cuidado, aca hay que ver que no libere memoria de los procesos hermanos
+        //si nadie comparte el directorio liberamos pgdir
+        int compartenDirectorio = 0;
+        struct proc* resultado = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
+        if (!resultado){
+                freevm(p->pgdir);
+        }else{
+            //TODO()
+        }
         p->state = UNUSED;
         p->pid = 0;
         p->parent = 0;

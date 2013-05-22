@@ -80,8 +80,10 @@ trap(struct trapframe *tf)
     lapiceoi();
     break;
   case T_PGFLT:
-                trapCOW();
-                break;
+      if (proc->tf->err & PTE_W ){//hacer mascara para filtrar el bit 2 del tf->err este en 1
+          trapCOW();
+      }
+      break;
       
   //PAGEBREAK: 13
   default:
