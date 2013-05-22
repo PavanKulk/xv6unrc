@@ -9,7 +9,7 @@
         <in>cat.c</in>
         <in>echo.c</in>
         <in>fcntl.h</in>
-        <in>forkSimple.c</in>
+        <in>forksimple.c</in>
         <in>forktest.c</in>
         <in>fs.h</in>
         <in>grep.c</in>
@@ -225,7 +225,7 @@
       </item>
       <item path="user/fcntl.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="user/forkSimple.c" ex="false" tool="0" flavor2="0">
+      <item path="user/forksimple.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="user/forktest.c" ex="false" tool="0" flavor2="0">
       </item>

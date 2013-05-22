@@ -123,7 +123,7 @@ growproc(int n)
   return 0;
 }
 //Recorrer todas las tablas de procesos
- struct proc* recorrerTablaProcesos( uint registroCR2,int* compartenDirectorio){ 
+ struct proc* recorrerTablaProcesos( uint registroCR2,int* compartenDirectorio){
     struct proc *p;
 //  pte_t * entryTablePage= wpgdir(pgdir,(void *)registroCR2, 0);
     //cprintf("proceso->pid: %d\n", proceso->pid);
@@ -131,7 +131,6 @@ growproc(int n)
         
     //cprintf("p->pid: %d\n", p->pid);
         if (p->pid == 0){
-            release(&ptable.lock);
             return 0;
         }
         if (proc->pgdir == p->pgdir && p!=proc){
@@ -165,11 +164,11 @@ growproc(int n)
  
  void trapCOW(){    
     int compartenDirectorio = 0;
-    if (rcr2() >= 0 && proc->sz > rcr2()){//El valor del rcr2 es correcto esta entre 0 y size.
+    if (rcr2() >= 0 && rcr2() <= proc->sz){//El valor del rcr2 es correcto esta entre 0 y size.
         acquire(&ptable.lock);
-        cprintf(" estoy en el trapCOW() y entro bien con la mascara!!!\n");
+        cprintf("proc->parent->name: %s, proc->parent->pid: %d, proc->name: %s, proc->pid: %d\n", proc->parent->name, proc->parent->pid, proc->name, proc->pid);
         struct proc* resultado = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
-        if (resultado){
+        while(resultado){
             if (compartenDirectorio){ //debemos copiarle todo directorio tabla y pagina
                 int i;
                 for(i = 0; i < proc->sz; i += PGSIZE){
@@ -180,17 +179,21 @@ growproc(int n)
                     resultado->kstack = 0;
                     resultado->state = UNUSED;
                     panic("ERROR COPIANDO copyuvm-------------> en trapCOW()");
-                    //return -1;
+                    
                 }
 
             }else{
                 cprintf("NO COMPARTEN DIRECTORIO !!!\n");
             }
-        }else
-            cprintf(" NO ENCONTRO PROCESO!!!-------------> en trapCOW()\n");
+            resultado = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
+        }
+        /*else
+            cprintf(" NO ENCONTRO PROCESO!!!-------------> en trapCOW()\n");*/
         release(&ptable.lock);
-     } 
-     
+     } else{
+        cprintf("acceso a memoria que no es del proceso (rcr2)\n");
+        
+     }
  }
 
 // Create a new process copying p as the parent.
@@ -345,13 +348,13 @@ wait(void)
         p->kstack = 0;
         // cuidado, aca hay que ver que no libere memoria de los procesos hermanos
         //si nadie comparte el directorio liberamos pgdir
-        int compartenDirectorio = 0;
-        struct proc* resultado = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
-        if (!resultado){
+//        int compartenDirectorio = 0;
+//        struct proc* resultado = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
+//        if (!resultado){
                 freevm(p->pgdir);
-        }else{
-            //TODO()
-        }
+//        }else{
+//            //TODO()
+//        }
         p->state = UNUSED;
         p->pid = 0;
         p->parent = 0;
@@ -371,6 +374,7 @@ wait(void)
     // Wait for children to exit.  (See wakeup1 call in proc_exit.)
     sleep(proc, &ptable.lock);  //DOC: wait-sleep
   }
+  
 }
 
 //PAGEBREAK: 42

@@ -151,7 +151,7 @@ mkfs: mkfs.c fs.h
 UPROGS=\
 	_cat\
 	_echo\
-	_forkSimple\
+	_forksimple\
 	_forktest\
 	_grep\
 	_init\
