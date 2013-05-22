@@ -6,6 +6,7 @@
         <in>cat.c</in>
         <in>echo.c</in>
         <in>fcntl.h</in>
+        <in>forkSimple.c</in>
         <in>forktest.c</in>
         <in>fs.h</in>
         <in>grep.c</in>
@@ -51,6 +52,7 @@
       <in>fcntl.h</in>
       <in>file.c</in>
       <in>file.h</in>
+      <in>forkSimple.asm</in>
       <in>forktest.asm</in>
       <in>fs.c</in>
       <in>fs.h</in>

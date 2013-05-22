@@ -71,8 +71,7 @@ runcmd(struct cmd *cmd)
   default:
     panic("runcmd");
 
-  case EXEC:
-     printf(1, "Pasa por el exec en el sh \n");  
+  case EXEC: 
     ecmd = (struct execcmd*)cmd;
     if(ecmd->argv[0] == 0)
       exit();
