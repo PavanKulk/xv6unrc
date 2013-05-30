@@ -19,6 +19,7 @@ extern void forkret(void);
 extern void trapret(void);
 extern void clearptew(pde_t *pgdir, char *uva);
 extern void setptew(pde_t *pgdir, char *uva);
+extern pte_t * mappage1(pde_t *pgdir, void *va, uint size, uint pa, int perm);
 static void wakeup1(void *chan);
 
 void
@@ -164,12 +165,22 @@ growproc(int n)
  
  void trapCOW(){    
     int compartenDirectorio = 0;
+    char *mem;
     if (rcr2() >= 0 && rcr2() <= proc->sz){//El valor del rcr2 es correcto esta entre 0 y size.
         acquire(&ptable.lock);
-        cprintf("proc->parent->name: %s, proc->parent->pid: %d, proc->name: %s, proc->pid: %d\n", proc->parent->name, proc->parent->pid, proc->name, proc->pid);
+        //cprintf("proc->parent->name: %s, proc->parent->pid: %d, proc->name: %s, proc->pid: %d\n", proc->parent->name, proc->parent->pid, proc->name, proc->pid);
         struct proc* resultado = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
         while(resultado){
-            if (compartenDirectorio){ //debemos copiarle todo directorio tabla y pagina
+            //copiar frame
+            if((mem = kalloc()) == 0)
+                panic("ERROR kalloc-------------> en trapCOW()");
+            memmove(mem, (char*)PGROUNDDOWN(rcr2()), PGSIZE);
+/*
+            if(mappage1(proc->pgdir, (char*)rcr2(), PGSIZE, v2p(mem), PTE_W|PTE_U) < 0)
+                panic("ERROR mappage1-------------> en trapCOW()");
+*/
+            
+            if (compartenDirectorio){ //debemos copiarle todo directorio y tabla
                 int i;
                 for(i = 0; i < proc->sz; i += PGSIZE){
                     setptew(proc->pgdir,(char*)i);
@@ -185,6 +196,7 @@ growproc(int n)
             }else{
                 cprintf("NO COMPARTEN DIRECTORIO !!!\n");
             }
+            
             resultado = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
         }
         /*else

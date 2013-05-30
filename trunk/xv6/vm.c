@@ -68,6 +68,7 @@ pte_t * wpgdir(pde_t *pgdir, const void *va, int alloc){
     return walkpgdir(pgdir,va, alloc);
 }
 
+
 // Create PTEs for virtual addresses starting at va that refer to
 // physical addresses starting at pa. va and size might not
 // be page-aligned.
@@ -91,6 +92,9 @@ mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
     pa += PGSIZE;
   }
   return 0;
+}
+int mappage1(pde_t *pgdir, void *va, uint size, uint pa, int perm){
+    return mappages(pgdir,va, size,pa,perm);
 }
 
 // There is one page table per process, plus one that's used when
