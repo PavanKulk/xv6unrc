@@ -178,7 +178,7 @@ growproc(int n)
         cprintf("rcr2 redondeado :   !!!%x\n",PGROUNDDOWN(rcr2()));
 */
         while(resultado){
-            //copiar frame
+                //copiar frame
             if((mem = kalloc()) == 0)
                 panic("ERROR kalloc-------------> en trapCOW()");
             memmove(mem, (char*)PGROUNDDOWN(rcr2()), PGSIZE); 
@@ -192,6 +192,7 @@ growproc(int n)
                     panic("copyuvm: pte should exist");
                 }
                 resultado->pgdir = (pde_t*)dir;
+                
                 //copiar la tabla
                 pte_t *tabla; 
                 tabla = wpgdir(resultado->pgdir, (char*)PGROUNDDOWN(rcr2()), 0);
@@ -239,8 +240,11 @@ fork(void)
   if((np = allocproc()) == 0){
     return -1;
   } 
-  if (proc->pid==1 || proc->pid==2){
-      //cprintf("np->pid==%d\n",np->pid);
+  if (strncmp(proc->name,"sh",2)==0 || strncmp(proc->name,"init",2)==0){
+/*
+      cprintf("np->pid==%d\n",np->pid);
+      cprintf("proc->pid==%d\n",proc->pid);
+*/
         // Copy process state from p.
         if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
             kfree(np->kstack);
@@ -250,7 +254,10 @@ fork(void)
         }
         
   }else {
-        //cprintf("np->pid==%d\n",np->pid);
+/*
+        cprintf("np->pid==%d\n",np->pid);
+        cprintf("proc->pid==%d\n",proc->pid);
+*/
         for(i = 0; i < proc->sz; i += PGSIZE){ //LAURA: que pasa si proc->sz==3 paginas? como esta aca la ultima no se copia, pero en otro casa si...
             clearptew(proc->pgdir,(char*)i);
         }
