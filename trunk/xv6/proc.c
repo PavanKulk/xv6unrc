@@ -183,6 +183,7 @@ growproc(int n)
                 panic("ERROR kalloc-------------> en trapCOW()");
             memmove(mem, (char*)PGROUNDDOWN(rcr2()), PGSIZE); 
             if (compartenDirectorio){ //debemos copiarle todo directorio y tabla
+                cprintf("entramos al if \n");
                 setptew(proc->pgdir,(char*)PGROUNDDOWN(rcr2()));// seteo solo la pagina que produjo el fallo como escribible
                 char *dir;
                 if((dir = kalloc()) == 0){
@@ -193,9 +194,16 @@ growproc(int n)
                 }
                 resultado->pgdir = (pde_t*)dir;
                 
-                //copiar la tabla
-                pte_t *tabla; 
-                tabla = wpgdir(resultado->pgdir, (char*)PGROUNDDOWN(rcr2()), 0);
+                //copiar la tabla ubicamos la entrada de tabla
+                pde_t *pde;
+                pte_t *tabla;
+                pde = &proc->pgdir[PDX(rcr2())];
+                if(*pde & PTE_P){
+                  tabla = (pte_t*)p2v(PTE_ADDR(*pde));
+                }else
+                    panic("deberia estar presente la tabla de pagina");
+                 
+                //tabla = wpgdir(proc->pgdir, (char*)PGROUNDDOWN(rcr2()), 0);
                 if(tabla == 0)
                         panic("copyuvm: pte should exist");
                 char* tab;
@@ -206,10 +214,13 @@ growproc(int n)
                     panic("ERROR COPIANDO memmove-------------> en trapCOW()"); 
                 }               
                 
-                pde_t *pde; 
-                pde = &resultado->pgdir[PDX(mem)]; 
-                
+                //pde_t *pde; 
+                pde = &resultado->pgdir[PDX(rcr2())];
+                cprintf("PDX DE MEM %d \n :",PDX(mem));
+                cprintf("PDX DE rcr2 %d \n :",PDX(rcr2()));
+                //cambiar el valor del pde con el valor que le corresp similar al if ant
                 *pde = v2p(tabla) | PTE_P | PTE_W | PTE_U;
+                tabla = wpgdir(resultado->pgdir, (char*)PGROUNDDOWN(rcr2()), 0);
                 *tabla =(uint) v2p(mem) | PTE_W | PTE_U | PTE_P;
                 
             }else{
@@ -261,7 +272,7 @@ fork(void)
         for(i = 0; i < proc->sz; i += PGSIZE){ //LAURA: que pasa si proc->sz==3 paginas? como esta aca la ultima no se copia, pero en otro casa si...
             clearptew(proc->pgdir,(char*)i);
         }
-        //cprintf(" tamaño de proc= %d, i= %d",proc->sz, i);
+        cprintf(" tamaño de proc= %d, i= %d",proc->sz, i);
         np->pgdir =proc->pgdir;
         
   }
@@ -379,7 +390,8 @@ wait(void)
         continue;
       havekids = 1;
       if(p->state == ZOMBIE){
-        // Found one.
+        // Found one.+
+          cprintf("esta zombie \n");
         pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
