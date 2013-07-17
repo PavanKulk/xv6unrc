@@ -10,18 +10,18 @@ main(void)
    switch(pid){
        
         case -1:
-                printf(1,"error en el fork\n");
+                printf(1,"forksimple.c---> error en el fork\n");
                 break;
         case 0:
-                printf(1,"soy el hijo mi pid es: %d\n",pid);
+                printf(1,"forksimple.c---> Soy el hijo mi pid es: %d\n",pid);
                 exit();
                 break;
                 
        default:
-                printf(1,"entreeeeeeeeeeee \n");
+                printf(1,"forksimple.c---> Entre al Padre Antes del wait()\n");
                 wait();
-                printf(1,"entreeeeeeeeeeee 2323232\n");
-                printf(1,"soy el padre mi pid es: %d\n",pid);
+                printf(1,"forksimple.c---> Entre al Padre despues del wait() del Wait\n");
+                printf(1,"forksimple.c---> soy el padre mi pid es: %d\n",pid);
                 exit();
                 break;
     }
