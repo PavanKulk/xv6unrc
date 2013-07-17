@@ -81,7 +81,7 @@ trap(struct trapframe *tf)
     break;
   case T_PGFLT:
       if (proc->tf->err & PTE_W ){//hacer mascara para filtrar el bit 2 del tf->err este en 1
-          cprintf("desde TRAP   rcr2: %d \n",rcr2());
+          cprintf("trap.c--->trap()   rcr2: %d \n",rcr2());
           trapCOW();
       }
       break;

@@ -94,7 +94,22 @@ mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
   return 0;
 }
 int mappage1(pde_t *pgdir, void *va, uint size, uint pa, int perm){
-    return mappages(pgdir,va, size,pa,perm);
+    //return mappages(pgdir,va, size,pa,perm);
+    char *a, *last;
+  pte_t *pte;
+  
+  a = (char*)PGROUNDDOWN((uint)va);
+  last = (char*)PGROUNDDOWN(((uint)va) + size - 1);
+  for(;;){
+    if((pte = walkpgdir(pgdir, a, 0)) == 0)
+      return -1;
+    *pte = pa | perm | PTE_P;
+    if(a == last)
+      break;
+    a += PGSIZE;
+    pa += PGSIZE;
+  }
+  return 0;
 }
 
 // There is one page table per process, plus one that's used when
