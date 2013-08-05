@@ -20,7 +20,7 @@ main(void)
        default:
                 printf(1,"forksimple.c---> Entre al Padre Antes del wait()\n");
                 wait();
-                printf(1,"forksimple.c---> Entre al Padre despues del wait() del Wait\n");
+                printf(1,"forksimple.c---> Entre al Padre despues del wait()\n");
                 printf(1,"forksimple.c---> soy el padre mi pid es: %d\n",pid);
                 exit();
                 break;
