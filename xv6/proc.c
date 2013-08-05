@@ -209,12 +209,12 @@ cprintf("proc.c--->trapCOW() Entramos a la trampa por fallo de pagina \n");
             }
             procComparteMemoria->pgdir = d;
             
-            pte_t *pte, *pte2;
-            int i;
-            for (i=0; i<procComparteMemoria->sz; i += PGSIZE){
-                pte = wpgdir(procComparteMemoria->pgdir, (void *) i, 0);
-                pte2 = wpgdir(proc->pgdir, (void *) i, 0);
-                cprintf("proc.c--->trapCOW() i = %d; procComparteMemoria = %d; proc = %d\n", i,*pte,*pte2);
+            pte_t *pte1, *pte2;
+            int j;
+            for (j=0; i<procComparteMemoria->sz; j += PGSIZE){
+                pte1 = wpgdir(procComparteMemoria->pgdir, (void *) j, 0);
+                pte2 = wpgdir(proc->pgdir, (void *) j, 0);
+                cprintf("proc.c--->trapCOW() j = %d; procComparteMemoria = %d; proc = %d\n", j,*pte1,*pte2);
             }
         }else{
             
