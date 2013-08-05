@@ -165,7 +165,7 @@ growproc(int n)
 }
  
  void trapCOW(){  
-     cprintf("proc.c--->trapCOW() Entramos a la trampa por fallo de pagina \n");
+cprintf("proc.c--->trapCOW() Entramos a la trampa por fallo de pagina \n");
      int compartenDirectorio = 0;
      acquire(&ptable.lock);
      struct proc* procComparteMemoria = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
@@ -177,13 +177,13 @@ growproc(int n)
         for (i=0; i<procComparteMemoria->sz; i += PGSIZE){
             pte = wpgdir(procComparteMemoria->pgdir, (void *) i, 0);
             pte2 = wpgdir(proc->pgdir, (void *) i, 0);
-            cprintf("proc.c--->trapCOW() i = %d; procComparteMemoria = %d; proc = %d\n", i,pte,pte2);
+            cprintf("proc.c--->trapCOW() i = %d; procComparteMemoria = %d; proc = %d\n", i,*pte,*pte2);
         }
      
      while(procComparteMemoria){//si hay procesos que comparten memoria entonces aplicar tecnica COW
         if (compartenDirectorio){
             pde_t *d;
-            pte_t *pte;
+            pte_t *pte,*pteAux;
             uint pa, i;
             char *mem;
             d = setupkvm();
@@ -200,24 +200,27 @@ growproc(int n)
                   mappage1(d, (void*)i, PGSIZE, v2p(mem), PTE_W|PTE_U);
               }else{
                   cprintf("proc.c--->trapCOW() i!=cr2Rounded i=%d  \n", i);
-                  pa = PTE_ADDR(*pte);    
-                  mappage1(d, (void*)i, PGSIZE, pa, PTE_W|PTE_U);
+                  pa = PTE_ADDR(*pte); 
+                  cprintf("proc.c--->trapCOW()  pa = %d  \n", pa);
+                  pteAux = wpgdir(proc->pgdir, (void *) i, 0);
+                  pte= wpgdir(d, (void*)i, 1);
+                  *pte = *pteAux;
               }
             }
             procComparteMemoria->pgdir = d;
+            
+            pte_t *pte, *pte2;
+            int i;
+            for (i=0; i<procComparteMemoria->sz; i += PGSIZE){
+                pte = wpgdir(procComparteMemoria->pgdir, (void *) i, 0);
+                pte2 = wpgdir(proc->pgdir, (void *) i, 0);
+                cprintf("proc.c--->trapCOW() i = %d; procComparteMemoria = %d; proc = %d\n", i,*pte,*pte2);
+            }
         }else{
             
             //TODO no comparten directorio
             cprintf("proc.c--->trapCOW() no comparten directorio \n");
         }
-        pte_t *pte, *pte2;
-        int i;
-        for (i=0; i<procComparteMemoria->sz; i += PGSIZE){
-            pte = wpgdir(procComparteMemoria->pgdir, (void *) i, 0);
-            pte2 = wpgdir(proc->pgdir, (void *) i, 0);
-            cprintf("proc.c--->trapCOW() i = %d; procComparteMemoria = %d; proc = %d\n", i,pte,pte2);
-        }
-
         procComparteMemoria = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
      }    
      release(&ptable.lock);
@@ -321,6 +324,7 @@ fork(void)
 void
 exit(void)
 {
+  cprintf("ENTRE AL EXIT\n");
   struct proc *p;
   int fd;
 
