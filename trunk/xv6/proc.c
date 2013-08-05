@@ -165,84 +165,62 @@ growproc(int n)
 }
  
  void trapCOW(){  
-    cprintf("proc.c--->trapCOW() Entramos a la trampa por fallo de pagina\n");
-    int compartenDirectorio = 0;
-    char *mem=0;
-    if (rcr2() >= 0 && rcr2() <= proc->sz){//El valor del rcr2 es correcto esta entre 0 y size.
-        acquire(&ptable.lock);
-        //cprintf("proc->parent->name: %s, proc->parent->pid: %d, proc->name: %s, proc->pid: %d\n", proc->parent->name, proc->parent->pid, proc->name, proc->pid);
-        struct proc* resultado = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
-/*
-        cprintf("en el wpgdir:   !!!%x\n",wpgdir(proc->pgdir, (char*)PGROUNDDOWN(rcr2()), 0));
-        cprintf("rcr2 :   !!!%x\n",rcr2());
-        cprintf("rcr2 redondeado :   !!!%x\n",PGROUNDDOWN(rcr2()));
-*/
-        while(resultado){
-                //copiar frame
-            if((mem = kalloc()) == 0)
-                panic("ERROR kalloc-------------> en trapCOW()");
-            memmove(mem, (char*)PGROUNDDOWN(rcr2()), PGSIZE); 
-            if (compartenDirectorio){ //debemos copiarle todo directorio y tabla
-                cprintf("proc.c--->trapCOW() compartenDirectorio==true \n");
-                setptew(proc->pgdir,(char*)PGROUNDDOWN(rcr2()));// seteo solo la pagina que produjo el fallo como escribible
-                char *dir;
-                if((dir = kalloc()) == 0){
-                    panic("ERROR kalloc-------------> en trapCOW()");
-                }
-                if ((memmove(dir, proc->pgdir, PGSIZE))==0 ){
-                    panic("copyuvm: pte should exist");
-                }
-                resultado->pgdir = (pde_t*)dir;
-                
-                //copiar la tabla ubicamos la entrada de tabla
-                pde_t *pde;
-                pte_t *tabla;
-                pde = &proc->pgdir[PDX(rcr2())];
-                if(*pde & PTE_P){
-                  tabla = (pte_t*)p2v(PTE_ADDR(*pde));
-                }else
-                    panic("deberia estar presente la tabla de pagina");
-                 
-                //tabla = wpgdir(proc->pgdir, (char*)PGROUNDDOWN(rcr2()), 0);
-                if(tabla == 0)
-                        panic("copyuvm: pte should exist");
-                char* tab;
-                if((tab = kalloc()) == 0){
-                    panic("ERROR kalloc-------------> en trapCOW()");
-                }
-                if(memmove(tab, tabla, PGSIZE)==0){
-                    panic("ERROR COPIANDO memmove-------------> en trapCOW()"); 
-                }               
-                
-                //pde_t *pde; 
-                pde = &resultado->pgdir[PDX(rcr2())];
-
-                //cambiar el valor del pde con el valor que le corresp similar al if ant
-                mappage1(resultado->pgdir,(void *)rcr2(),PGSIZE,v2p(mem),PTE_P | PTE_W | PTE_U);
-                *pde = v2p(tabla) | PTE_P | PTE_W | PTE_U;
-//                tabla = wpgdir(resultado->pgdir, (char*)PGROUNDDOWN(rcr2()), 0);
-//                *tabla =(uint) v2p(mem) | PTE_W | PTE_U | PTE_P;
-                
-                cprintf("proc.c--->trapCOW() PDX DE MEM %d \n",PDX(mem));
-                cprintf("proc.c--->trapCOW() PTX DE MEM %d \n",PTX(mem));
-                cprintf("proc.c--->trapCOW() MEM %d \n",mem);
-                cprintf("proc.c--->trapCOW() PDX DE rcr2 %d \n",PDX(rcr2()));
-                cprintf("proc.c--->trapCOW() PTX DE rcr2 %d \n",PTX(rcr2()));
-                cprintf("proc.c--->trapCOW() rcr2 %d \n",rcr2());
-                
-            }else{
-                cprintf("NO COMPARTEN DIRECTORIO !!!\n");
-            }
-            
-            resultado = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
+     cprintf("proc.c--->trapCOW() Entramos a la trampa por fallo de pagina \n");
+     int compartenDirectorio = 0;
+     acquire(&ptable.lock);
+     struct proc* procComparteMemoria = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
+     uint cr2Rounded = PGROUNDDOWN(rcr2());
+     setptew(proc->pgdir,(char*)cr2Rounded);// seteo solo la pagina que produjo el fallo como escribible
+     
+     pte_t *pte, *pte2;
+        int i;
+        for (i=0; i<procComparteMemoria->sz; i += PGSIZE){
+            pte = wpgdir(procComparteMemoria->pgdir, (void *) i, 0);
+            pte2 = wpgdir(proc->pgdir, (void *) i, 0);
+            cprintf("proc.c--->trapCOW() i = %d; procComparteMemoria = %d; proc = %d\n", i,pte,pte2);
         }
-        /*else
-            cprintf(" NO ENCONTRO PROCESO!!!-------------> en trapCOW()\n");*/
-        release(&ptable.lock);
-     } else{
-        cprintf("acceso a memoria que no es del proceso (rcr2)\n");
-        
-     }
+     
+     while(procComparteMemoria){//si hay procesos que comparten memoria entonces aplicar tecnica COW
+        if (compartenDirectorio){
+            pde_t *d;
+            pte_t *pte;
+            uint pa, i;
+            char *mem;
+            d = setupkvm();
+            for(i = 0; i < proc->sz; i += PGSIZE){
+              if((pte = wpgdir(proc->pgdir, (void *) i, 0)) == 0)
+                panic("proc.c--->trapCOW(): ptedeberia existir");
+              if(!(*pte & PTE_P))
+                panic("proc.c--->trapCOW(): pagina no presente");
+              if(cr2Rounded == i){//Encontre la pagina que debo copiar (la que contiene la direccion que produjo el fallo))
+                  cprintf("proc.c--->trapCOW() i==cr2Rounded %d==%d  \n", i,cr2Rounded);
+                  pa = PTE_ADDR(*pte);
+                  mem = kalloc();
+                  memmove(mem, (char*)p2v(pa), PGSIZE);
+                  mappage1(d, (void*)i, PGSIZE, v2p(mem), PTE_W|PTE_U);
+              }else{
+                  cprintf("proc.c--->trapCOW() i!=cr2Rounded i=%d  \n", i);
+                  pa = PTE_ADDR(*pte);    
+                  mappage1(d, (void*)i, PGSIZE, pa, PTE_W|PTE_U);
+              }
+            }
+            procComparteMemoria->pgdir = d;
+        }else{
+            
+            //TODO no comparten directorio
+            cprintf("proc.c--->trapCOW() no comparten directorio \n");
+        }
+        pte_t *pte, *pte2;
+        int i;
+        for (i=0; i<procComparteMemoria->sz; i += PGSIZE){
+            pte = wpgdir(procComparteMemoria->pgdir, (void *) i, 0);
+            pte2 = wpgdir(proc->pgdir, (void *) i, 0);
+            cprintf("proc.c--->trapCOW() i = %d; procComparteMemoria = %d; proc = %d\n", i,pte,pte2);
+        }
+
+        procComparteMemoria = recorrerTablaProcesos(rcr2(),&compartenDirectorio);
+     }    
+     release(&ptable.lock);
  }
 
 // Create a new process copying p as the parent.
@@ -276,10 +254,10 @@ fork(void)
         cprintf("np->pid==%d\n",np->pid);
         cprintf("proc->pid==%d\n",proc->pid);
 */
-        for(i = 0; i < proc->sz; i += PGSIZE){ //LAURA: que pasa si proc->sz==3 paginas? como esta aca la ultima no se copia, pero en otro casa si...
+        for(i = 0; i < proc->sz; i += PGSIZE){ //LAURA: que pasa si proc->sz==3 paginas? como esta aca la ultima no se copia, pero en otro caso si...
             clearptew(proc->pgdir,(char*)i);
         }
-        cprintf(" proc.c-->fork() Tamanio de proc= %d, i= %d \n",proc->sz, i);
+        //cprintf(" proc.c-->fork() Tamanio de proc= %d, i= %d \n",proc->sz, i);
         np->pgdir =proc->pgdir;
         
   }

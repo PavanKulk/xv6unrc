@@ -82,9 +82,15 @@ trap(struct trapframe *tf)
   case T_PGFLT:
       if (proc->tf->err & PTE_W ){//hacer mascara para filtrar el bit 2 del tf->err este en 1
           cprintf("trap.c--->trap()   rcr2: %d \n",rcr2());
-          trapCOW();
+          if (rcr2() >= 0 && rcr2() <= proc->sz){//El valor del rcr2 es correcto esta entre 0 y size.
+                trapCOW();
+                break;
+          }else{
+              cprintf("trap.c--->trap()   Acceso a memoria fuera del proceso...\n");
+          }
+          
       }
-      break;
+      
       
   //PAGEBREAK: 13
   default:
