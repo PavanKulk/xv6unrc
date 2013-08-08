@@ -174,21 +174,24 @@ growproc(int n)
     //cprintf("Fin Tabla de Procesos\n");
 }
  
-  struct proc* recorrerTablaProcesosWait(){
+  struct proc* recorrerTablaProcesosWait(struct proc *pp){
     struct proc *p;
     for(p = ptable.proc; p < &ptable.proc[NPROC] && (p->pid != 0); p++){
      
         if (p->pid == 0){
             return 0;
         }
-        if (proc->pgdir == p->pgdir && p!=proc){
+        if (p->state == ZOMBIE){
+            return 0;
+        }
+        if (pp->pgdir == p->pgdir && p!=pp){
             return p;           
         }else{ //no comparten directorio
             pte_t *pte1, *pte2;
             int j;
-            for (j=0; j<proc->sz; j += PGSIZE){
+            for (j=0; j<pp->sz; j += PGSIZE){
                 pte1 = wpgdir(p->pgdir, (void *) j, 0);
-                pte2 = wpgdir(proc->pgdir, (void *) j, 0);
+                pte2 = wpgdir(pp->pgdir, (void *) j, 0);
                 if(*pte1==*pte2){
                     return p;
                 }
@@ -499,7 +502,7 @@ wait(void)
         //si nadie comparte el directorio liberamos pgdir
         //int compartenDirectorio = 0;
          cprintf("proc.c--->wait() PID del proceso que esta zombie %d : \n",pid);
-        struct proc* resultado = recorrerTablaProcesosWait();
+        struct proc* resultado = recorrerTablaProcesosWait(p);
         if (resultado == 0){
             cprintf("proc.c--->wait() libero memoria \n");
                 freevm(p->pgdir);
