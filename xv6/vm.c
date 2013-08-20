@@ -324,6 +324,16 @@ clearptew(pde_t *pgdir, char *uva)
     *pte &= ~PTE_W;
 }
 
+// Clear PTE_W on a table. 
+void
+cleardtew(pde_t *pgdir, char *uva)
+{
+    //cprintf("antes de sacarle escritura %x\n", &pgdir[PDX(uva)]);
+    pde_t *pde = &pgdir[PDX(uva)];
+    *pde &= ~PTE_W;
+    //cprintf("despues de sacarle escritura %x\n", &pgdir[PDX(uva)]);
+}
+
 // Set PTE_W on a page. 
 void
 setptew(pde_t *pgdir, char *uva)
@@ -334,6 +344,16 @@ setptew(pde_t *pgdir, char *uva)
     if(pte == 0)
       panic("setptew");
     *pte |= PTE_W;
+}
+
+// Set PTE_W on a table. 
+void
+setdtew(pde_t *pgdir, char *uva)
+{ 
+    pde_t *pde = &pgdir[PDX(uva)];
+    //cprintf("antes de ponerle escritura %x\n", *pde);
+    *pde |= PTE_W;
+    //cprintf("despues de ponerle escritura %x\n", *pde);
 }
 
 // Given a parent process's page table, create a copy
