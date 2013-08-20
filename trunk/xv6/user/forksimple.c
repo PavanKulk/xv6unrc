@@ -1,11 +1,12 @@
 #include "types.h"
 #include "stat.h"
 #include "user.h"
+int pid;
 
 int
 main(void)
 {
-   int pid;
+   //int pid;
    pid = fork();
    
    switch(pid){
