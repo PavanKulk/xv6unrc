@@ -339,7 +339,7 @@ void
 setptew(pde_t *pgdir, char *uva)
 {
     pte_t *pte;
-    if((pte = walkpgdir(pgdir, uva, 0)) == 0)
+    if((pte = walkpgdir(pgdir, uva,0 )) == 0)
         panic("setptew errror en el walkpgdir ");
     if(pte == 0)
       panic("setptew");
