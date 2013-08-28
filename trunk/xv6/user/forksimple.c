@@ -16,7 +16,9 @@ main(void)
                  break;
                 }
         case 0:{
+                printf(1,"forksimple.c---> Entre al hijo\n");
                 printf(1,"forksimple.c---> Soy el hijo mi pid es: %d\n",pid);
+                printf(1,"forksimple.c---> Soy el hijo antes del exit \n");
                 exit();
                 break;
                } 
