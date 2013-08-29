@@ -290,6 +290,7 @@ freevm(pde_t *pgdir)
   if(pgdir == 0)
     panic("freevm: no pgdir");
   deallocuvm(pgdir, KERNBASE, 0);
+  cprintf("freevm ----- despues de deallocuvm hasta aca llega bien \n");
   for(i = 0; i < NPDENTRIES; i++){
     if(pgdir[i] & PTE_P){
       char * v = p2v(PTE_ADDR(pgdir[i]));
