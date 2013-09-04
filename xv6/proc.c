@@ -196,9 +196,9 @@ growproc(int n)
             for (j=0; j< pp->sz; j += PGSIZE){
                 pte1 = wpgdir(p->pgdir, (void *) j, 0);
                 pte2 = wpgdir(pp->pgdir, (void *) j, 0);
-                cprintf("pte1 %d == %d *pte2 \n", *pte1, *pte2);
+                //cprintf("pte1 %d == %d *pte2 \n", *pte1, *pte2);
                 if(*pte1== *pte2){ 
-                    //cprintf("retorna \n");
+                    //cprintf("proc.c--->recorrerTablaProcesosWait() retorna pte1==pte2 \n");
                     return j;
                 }
             }
@@ -210,26 +210,34 @@ growproc(int n)
 }
  
   
- void duplicarMemoria(uint rcr2, struct proc *procesoaTratar){     
+ void duplicarMemoria(uint rcr2, struct proc *procesoaTratar, struct proc *procesoNuevo){     
     enum compartenProc comparten = NADA;//verifica si comparten memoria
     pde_t *dir;                         //directorio nuevo
     pde_t *pde;                         //entrada en el directorio
     pte_t *pte;                         //entrada en la tabla de pagina
     char *pagina = 0;                   //pagina nueva
-    struct proc* resultado = recorrerTablaProcesos(rcr2,&comparten); //proceso que comparte memoria con el proc que produjo la falta
-    setptew(procesoaTratar->pgdir,(char*)PGROUNDDOWN(rcr2));// seteo solo la pagina que produjo el fallo como escribible
+    struct proc* resultado = 0;//proceso que comparte memoria con el proc que produjo la falta
+    if(procesoNuevo){
+        resultado = procesoNuevo;
+        comparten = DIRECTORIO;
+    }else{
+        resultado = recorrerTablaProcesos(rcr2,&comparten); 
+        setptew(procesoaTratar->pgdir,(char*)PGROUNDDOWN(rcr2));// seteo solo la pagina que produjo el fallo como escribible
+    }
     while(resultado){
          switch (comparten){
             
             case DIRECTORIO:
                             // cprintf("proc.c ()--->trapCOW() Comparten Directorio \n");
-                            if((dir = (pde_t*)kalloc()) == 0){
-                                panic("ERROR kalloc-------------> en trapCOW()");
-                            }
-                            memset(dir,0,PGSIZE);
-                            if ((memmove(dir, procesoaTratar->pgdir, PGSIZE))==0 ){
+//                            if((dir = (pde_t*)kalloc()) == 0){
+//                                panic("ERROR kalloc-------------> en trapCOW()");
+//                            }
+//                            memset(dir,0,PGSIZE);
+                            dir = setupkvm();    
+                            if ((memmove(dir, procesoaTratar->pgdir, (PGSIZE/2)-1))==0 ){
                                 panic("trapCOW: pde should exist");
                             }
+                           
                             resultado->pgdir = dir;
                 
             case TABLA:
@@ -264,15 +272,21 @@ growproc(int n)
                             
             case NADA:  break;              
         }
-        comparten = NADA;
-        resultado = recorrerTablaProcesos(rcr2,&comparten);
+        if(procesoNuevo){
+            comparten = NADA;
+            resultado = 0;
+        }else{
+            comparten = NADA;
+            resultado = recorrerTablaProcesos(rcr2,&comparten);
+        } 
+        
        // cprintf("proc.c ()--->trapCOW() RESULTADO:  %d\n", resultado);
     }   
 }
 
 void trapCOW(uint rcr2){
     acquire(&ptable.lock);
-    duplicarMemoria(rcr2, proc);
+    duplicarMemoria(rcr2, proc, 0);
     release(&ptable.lock);
 } 
 // void trapCOW(){  
@@ -368,12 +382,14 @@ fork(void)
         cprintf("np->pid==%d\n",np->pid);
         cprintf("proc->pid==%d\n",proc->pid);
 */
-        for(i = 0; i < proc->sz; i += PGSIZE){ //LAURA: que pasa si proc->sz==3 paginas? como esta aca la ultima no se copia, pero en otro caso si...
+        for(i = 0; i < proc->sz - PGSIZE; i += PGSIZE){ //LAURA: que pasa si proc->sz==3 paginas? como esta aca la ultima no se copia, pero en otro caso si...
             cleardtew(proc->pgdir,(char*)i);//limpia el bit de escritura de la tabla en el directorio
             clearptew(proc->pgdir,(char*)i);//limpia el bit de escritura de la pagina en la tabla
         }
         //cprintf(" proc.c-->fork() Tamanio de proc= %d, i= %d \n",proc->sz, i);
-        np->pgdir = proc->pgdir;
+        //np->pgdir = proc->pgdir;
+        //cprintf(" proc.c-->fork() i= %d \n", i);
+        duplicarMemoria(i, proc, np);
         
   }
   np->sz = proc->sz;
@@ -436,7 +452,7 @@ fork(void)
 void
 exit(void)
 {
-  cprintf("ENTRE AL EXIT PID= %d\n", proc->pid);
+  //cprintf("ENTRE AL EXIT PID= %d\n", proc->pid);
   struct proc *p;
   int fd;
 
@@ -498,13 +514,12 @@ wait(void)
         
         uint resultado = recorrerTablaProcesosWait(p);//busco algun proceso que comparta memoria con el actual zombie
         while (resultado!= 0){
-            duplicarMemoria(resultado, p); //divido memoria de los procesos
+            duplicarMemoria(resultado, p, 0); //divido memoria de los procesos
             resultado = recorrerTablaProcesosWait(p);
-            cprintf("proc.c ()--->wait() resultado %d \n", resultado);
+            //cprintf("proc.c ()--->wait() resultado %d \n", resultado);
         }
-        
         if (resultado == 0){
-                cprintf("proc.c (%d)--->wait() libero memoria \n", p->pid);
+                //cprintf("proc.c (%d)--->wait() libero memoria \n", p->pid);
                 freevm(p->pgdir);
         }
         p->state = UNUSED;
@@ -519,7 +534,7 @@ wait(void)
 
     // No point waiting if we don't have any children.
     if(!havekids || proc->killed){
-      cprintf("proc.c (%d)--->wait() no tiene hijos, da error \n", p->pid);  
+      //cprintf("proc.c (%d)--->wait() no tiene hijos, da error \n", p->pid);  
       release(&ptable.lock);
       return -1;
     }

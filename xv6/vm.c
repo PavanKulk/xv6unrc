@@ -299,6 +299,7 @@ freevm(pde_t *pgdir)
     }
   }
   //cprintf("freevm ----- antes de kfree hasta aca llega bien \n");
+  cprintf("freevm -----  pgdir  %d pid  %d\n",pgdir,proc->pid);
   kfree((char*)pgdir);
 }
 
