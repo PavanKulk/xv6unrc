@@ -198,7 +198,7 @@ growproc(int n)
                 pte2 = wpgdir(pp->pgdir, (void *) j, 0);
                 cprintf("pte1 %d == %d *pte2 \n", *pte1, *pte2);
                 if(*pte1== *pte2){ 
-                    cprintf("retorna \n");
+                    //cprintf("retorna \n");
                     return j;
                 }
             }
@@ -436,7 +436,7 @@ fork(void)
 void
 exit(void)
 {
-  //cprintf("ENTRE AL EXIT PID= %d\n", proc->pid);
+  cprintf("ENTRE AL EXIT PID= %d\n", proc->pid);
   struct proc *p;
   int fd;
 
@@ -519,6 +519,7 @@ wait(void)
 
     // No point waiting if we don't have any children.
     if(!havekids || proc->killed){
+      cprintf("proc.c (%d)--->wait() no tiene hijos, da error \n", p->pid);  
       release(&ptable.lock);
       return -1;
     }
