@@ -199,6 +199,7 @@ growproc(int n)
                 //cprintf("pte1 %d == %d *pte2 \n", *pte1, *pte2);
                 if(*pte1 == *pte2){ 
                     //cprintf("proc.c--->recorrerTablaProcesosWait() retorna pte1==pte2 j=%d \n", j);
+                    procesoZombie = p;
                     return j;
                 }
             }
@@ -282,6 +283,25 @@ growproc(int n)
         
        // cprintf("proc.c ()--->trapCOW() RESULTADO:  %d\n", resultado);
     }   
+}
+ 
+void duplicarMemoriaWait(uint rcr2, struct proc *procesoaTratar, struct proc *procesoNuevo){  
+    pte_t *pte;                         //entrada en la tabla de pagina
+    char *pagina = 0;                   //pagina nueva
+    struct proc* resultado = 0;         //proceso que comparte memoria con el proc que produjo la falta
+    
+        resultado = procesoNuevo;
+        setptew(procesoaTratar->pgdir,(char*)PGROUNDDOWN(rcr2));// seteo solo la pagina que produjo el fallo como escribible
+   
+    
+                            // cprintf("proc.c ()--->trapCOW() Comparten Pagina \n");
+                            if((pagina = kalloc()) == 0)
+                                    panic("ERROR kalloc-------------> en trapCOW()");
+                            memset(pagina,0,PGSIZE);
+                            memmove(pagina, (char*)PGROUNDDOWN(rcr2), PGSIZE); 
+                            pte = wpgdir(resultado->pgdir,(char*)PGROUNDDOWN(rcr2),0); // direccion base de la pagina
+                            *pte = (uint) v2p(pagina) | PTE_W | PTE_U | PTE_P; //actualizamos entrada de la pagina
+      
 }
 
 void trapCOW(uint rcr2){
@@ -495,7 +515,7 @@ exit(void)
 int
 wait(void)
 {
-  struct proc *p;
+  struct proc *p, *p2;
   int havekids, pid;
 
   acquire(&ptable.lock);
@@ -513,9 +533,12 @@ wait(void)
         kfree(p->kstack);
         p->kstack = 0;
         
-        uint resultado = recorrerTablaProcesosWait(p);//busco algun proceso que comparta memoria con el actual zombie
+        p2 = p;
+        //cprintf("proc.c ()--->wait() p %x; p2 %x\n", p, p2);
+        uint resultado = recorrerTablaProcesosWait(p2);//busco algun proceso que comparta memoria con el actual zombie
         while (resultado!= -1){
-            duplicarMemoria(resultado, p, 0); //divido memoria de los procesos
+            //cprintf("proc.c ()--->wait() proc->pid = %d; proc->eip = %x || p->pid = %d; p->eip = %x \n", proc->pid, proc->tf->eip, p->pid, p->tf->eip);
+            duplicarMemoriaWait(resultado, p2, p); //divido memoria de los procesos
             //cprintf("proc.c ()--->wait() resultado %d \n", resultado);
             resultado = recorrerTablaProcesosWait(p);
             //cprintf("proc.c ()--->wait() resultado %d \n", resultado);
@@ -524,6 +547,7 @@ wait(void)
             //cprintf("proc.c (%d)--->wait() libero memoria \n", p->pid);
             //panic("panic attack!!!");
             freevm(p->pgdir);
+            //panic("panic attack!!!");
         }
         p->state = UNUSED;
         p->pid = 0;
@@ -531,6 +555,7 @@ wait(void)
         p->name[0] = 0;
         p->killed = 0;
         release(&ptable.lock);
+        //panic("panic attack!!!");
         return pid;
       }
     }

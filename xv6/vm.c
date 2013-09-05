@@ -299,9 +299,9 @@ freevm(pde_t *pgdir)
     }
   }
   //cprintf("freevm ----- antes de kfree hasta aca llega bien \n");
-  cprintf("freevm -----  pgdir  %d pid  %d\n",pgdir,proc->pid);
+  //cprintf("freevm -----  pgdir  %d pid  %d\n",pgdir,proc->pid);
   kfree((char*)pgdir);
-  cprintf("freevm -----  despues del kfree\n");
+  //cprintf("freevm -----  despues del kfree\n");
 }
 
 // Clear PTE_U on a page. Used to create an inaccessible
