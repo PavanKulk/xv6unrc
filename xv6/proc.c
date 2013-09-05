@@ -183,30 +183,30 @@ growproc(int n)
  *      del programa zombie recorrer todos los procesos a ver si comparten la pagina. Si la comparten, 
  *      al programa zombie hay que borrarle la referencia para que cuando haga el kfree no borre una pagina en uso
  */
-  uint recorrerTablaProcesosWait(struct proc *pp){
+  uint recorrerTablaProcesosWait(struct proc *procesoZombie){
     struct proc *p;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
         if (p->pid == 0){
-            return 0;
+            return -1;
         }
         
-        if (p!=pp){
+        if (p != procesoZombie){
             pte_t *pte1, *pte2;
             int j;
-            for (j=0; j< pp->sz; j += PGSIZE){
+            for (j=0; j< procesoZombie->sz; j += PGSIZE){
                 pte1 = wpgdir(p->pgdir, (void *) j, 0);
-                pte2 = wpgdir(pp->pgdir, (void *) j, 0);
+                pte2 = wpgdir(procesoZombie->pgdir, (void *) j, 0);
                 //cprintf("pte1 %d == %d *pte2 \n", *pte1, *pte2);
-                if(*pte1== *pte2){ 
-                    //cprintf("proc.c--->recorrerTablaProcesosWait() retorna pte1==pte2 \n");
+                if(*pte1 == *pte2){ 
+                    //cprintf("proc.c--->recorrerTablaProcesosWait() retorna pte1==pte2 j=%d \n", j);
                     return j;
                 }
             }
            
         }
     }
-    cprintf("No deberia imprimirse esto...");
-    return 0;
+    //cprintf("No deberia imprimirse esto...");
+    return -1;
 }
  
   
@@ -505,22 +505,25 @@ wait(void)
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->parent != proc)
         continue;
-      havekids = 1;
+      havekids = 1; //proc tiene un hijo!
       if(p->state == ZOMBIE){
         // Found one.+
         pid = p->pid;
+        //cprintf("proc.c ()--->wait() p->kstack %d; proc->kstack %d\n", p->kstack, proc->kstack);
         kfree(p->kstack);
         p->kstack = 0;
         
         uint resultado = recorrerTablaProcesosWait(p);//busco algun proceso que comparta memoria con el actual zombie
-        while (resultado!= 0){
+        while (resultado!= -1){
             duplicarMemoria(resultado, p, 0); //divido memoria de los procesos
+            //cprintf("proc.c ()--->wait() resultado %d \n", resultado);
             resultado = recorrerTablaProcesosWait(p);
             //cprintf("proc.c ()--->wait() resultado %d \n", resultado);
         }
-        if (resultado == 0){
-                //cprintf("proc.c (%d)--->wait() libero memoria \n", p->pid);
-                freevm(p->pgdir);
+        if (resultado == -1){
+            //cprintf("proc.c (%d)--->wait() libero memoria \n", p->pid);
+            //panic("panic attack!!!");
+            freevm(p->pgdir);
         }
         p->state = UNUSED;
         p->pid = 0;
