@@ -191,7 +191,7 @@ growproc(int n)
         }
         
         if (p != procesoZombie){
-            pte_t *pte1, *pte2;
+            pte_t *pte1, *pte2/*, *pte3*/;
             int j;
             for (j=0; j< procesoZombie->sz; j += PGSIZE){
                 pte1 = wpgdir(p->pgdir, (void *) j, 0);
@@ -199,8 +199,11 @@ growproc(int n)
                 //cprintf("pte1 %d == %d *pte2 \n", *pte1, *pte2);
                 if(*pte1 == *pte2){ 
                     //cprintf("proc.c--->recorrerTablaProcesosWait() retorna pte1==pte2 j=%d \n", j);
-                    procesoZombie = p;
-                    return j;
+                    *pte2 = 0;
+                    //pte3 = wpgdir(procesoZombie->pgdir, (void *) j, 0);
+                    //cprintf("proc.c---> recorrerTablaProcesosWait()  pte1==pte2 = %d || pte3=%d \n", *pte1, *pte3);
+                    //procesoZombie = p;
+                    //return j;
                 }
             }
            
@@ -536,13 +539,13 @@ wait(void)
         p2 = p;
         //cprintf("proc.c ()--->wait() p %x; p2 %x\n", p, p2);
         uint resultado = recorrerTablaProcesosWait(p2);//busco algun proceso que comparta memoria con el actual zombie
-        while (resultado!= -1){
+        //while (resultado!= -1){
             //cprintf("proc.c ()--->wait() proc->pid = %d; proc->eip = %x || p->pid = %d; p->eip = %x \n", proc->pid, proc->tf->eip, p->pid, p->tf->eip);
-            duplicarMemoriaWait(resultado, p2, p); //divido memoria de los procesos
+            //duplicarMemoriaWait(resultado, p2, p); //divido memoria de los procesos
             //cprintf("proc.c ()--->wait() resultado %d \n", resultado);
-            resultado = recorrerTablaProcesosWait(p);
+            //resultado = recorrerTablaProcesosWait(p);
             //cprintf("proc.c ()--->wait() resultado %d \n", resultado);
-        }
+        //}
         if (resultado == -1){
             //cprintf("proc.c (%d)--->wait() libero memoria \n", p->pid);
             //panic("panic attack!!!");
