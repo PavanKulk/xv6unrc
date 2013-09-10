@@ -191,30 +191,45 @@ growproc(int n)
         }
         
         if (p != procesoZombie){
-            pte_t *pte1, *pte2/*, *pte3*/;
-            int j;
-            for (j=0; j< procesoZombie->sz; j += PGSIZE){
-                pte1 = wpgdir(p->pgdir, (void *) j, 0);
-                pte2 = wpgdir(procesoZombie->pgdir, (void *) j, 0);
-                //cprintf("pte1 %d == %d *pte2 \n", *pte1, *pte2);
-                if(*pte1 == *pte2){ 
-                    //cprintf("proc.c--->recorrerTablaProcesosWait() retorna pte1==pte2 j=%d \n", j);
-                    *pte2 = 0;
-                    //pte3 = wpgdir(procesoZombie->pgdir, (void *) j, 0);
-                    //cprintf("proc.c---> recorrerTablaProcesosWait()  pte1==pte2 = %d || pte3=%d \n", *pte1, *pte3);
-                    //procesoZombie = p;
-                    //return j;
+            pte_t *pteP, *ptePZ/*, *pte3*/;
+            int i,j;
+            for (i=0; i< procesoZombie->sz; i += PGSIZE){
+                pteP = wpgdir(p->pgdir, (void *) i, 0);
+                ptePZ = wpgdir(procesoZombie->pgdir, (void *) i, 0);
+                //cprintf("*pteP %d, p->pid %d  *ptePZ %d \n", *pteP, p->pid, *ptePZ);
+                if(*pteP == *ptePZ){ //comparten pagina
+                    //ver que comparten tabla: 
+                    pde_t * tablaP = &p->pgdir[PDX(i)];
+                    pde_t * tablaPZ = &procesoZombie->pgdir[PDX(i)];
+                    //cprintf("*tablaP %d  *tablaPZ %d \n", *tablaP, *tablaPZ);
+                    if(*tablaPZ !=0 && *tablaP == *tablaPZ){
+                        //printf("procesoZombie->name %s,procesoZombie->pid %d, procesoZombie->sz %d, p-> name %s, p-> pid %d, p->sz %d \n",procesoZombie->name,procesoZombie->pid, procesoZombie->sz, p-> name, p-> pid , p->sz);
+                      *tablaPZ = 0;
+                    }else{
+                        *ptePZ = 0;
+                    }
+
                 }
             }
-           
+            for (j=0; j< NPDENTRIES; j ++){ // hay casos en que comparten tablas pero el tamaño del proceso zombie es mucho mas chico y no sabemos por que comparten las trablas de la 1 a la 24
+                pde_t * tablaP = &p->pgdir[j];
+                pde_t * tablaPZ = &procesoZombie->pgdir[j];
+                //cprintf("proc.c ()--->rTP() tablaProc: %d; tablaP: %d \n", *tablaProc, *tablaP);
+                //cprintf("*tablaP %d  *tablaPZ %d  j %d\n", *tablaP, *tablaPZ, j);
+                if (*tablaPZ !=0 && *tablaPZ == *tablaP){
+                    //cprintf("*tablaP %d p->pid %d p->sz %d/ *tablaPZ %d PZ->pid %d PZ->sz %d/ j %d\n", *tablaP, p->pid, p->sz, *tablaPZ, procesoZombie->pid, procesoZombie->sz, j);
+                    *tablaPZ = 0;
+                }
+            }
+            
         }
+    
     }
-    //cprintf("No deberia imprimirse esto...");
     return -1;
-}
+  }
  
   
- void duplicarMemoria(uint rcr2, struct proc *procesoaTratar, struct proc *procesoNuevo){     
+ void duplicarMemoria(uint rcr2, struct proc *procesoaTratar, struct proc *procesoNuevo){  //cambiar nombre a copypage   
     enum compartenProc comparten = NADA;//verifica si comparten memoria
     pde_t *dir;                         //directorio nuevo
     pde_t *pde;                         //entrada en el directorio
@@ -239,7 +254,7 @@ growproc(int n)
 //                            memset(dir,0,PGSIZE);
                             dir = setupkvm();    
                             if ((memmove(dir, procesoaTratar->pgdir, (PGSIZE/2)-1))==0 ){
-                                panic("trapCOW: pde should exist");
+                                panic("duplicarMemoria: pde should exist");
                             }
                            
                             resultado->pgdir = dir;
@@ -250,17 +265,17 @@ growproc(int n)
                             if(*pde & PTE_P){
                               pte = (pte_t*)p2v(PTE_ADDR(*pde)); // direccion base de la tabla
                             }else
-                                panic("deberia estar presente la tabla de pagina-------------> en trapCOW()");
+                                panic("deberia estar presente la tabla de pagina-------------> en duplicarMemoria()");
                             
                             pte_t* tabla;
                             if((tabla = (pte_t*)kalloc()) == 0){
-                                panic("ERROR kalloc-------------> en trapCOW()");
+                                panic("ERROR kalloc-------------> en duplicarMemoria()");
                             }
                             memset(tabla,0,PGSIZE);
                             setdtew(procesoaTratar->pgdir,(char*)PGROUNDDOWN(rcr2)); //seteamos en proc y resultado la tabla como escribible
                             setdtew(resultado->pgdir,(char*)PGROUNDDOWN(rcr2));
                             if(memmove(tabla, pte, PGSIZE)==0){
-                                panic("ERROR memmove-------------> en trapCOW()"); 
+                                panic("ERROR memmove-------------> en duplicarMemoria()"); 
                             }               
                             pde = &resultado->pgdir[PDX(rcr2)];
                             *pde = (uint) v2p(tabla) | PTE_W | PTE_U | PTE_P;   //actualizamos entrada de tabla
@@ -268,7 +283,7 @@ growproc(int n)
             case PAGINA:    
                             // cprintf("proc.c ()--->trapCOW() Comparten Pagina \n");
                             if((pagina = kalloc()) == 0)
-                                    panic("ERROR kalloc-------------> en trapCOW()");
+                                    panic("ERROR kalloc-------------> en duplicarMemoria()");
                             memset(pagina,0,PGSIZE);
                             memmove(pagina, (char*)PGROUNDDOWN(rcr2), PGSIZE); 
                             pte = wpgdir(resultado->pgdir,(char*)PGROUNDDOWN(rcr2),0); // direccion base de la pagina
@@ -412,7 +427,7 @@ fork(void)
         //cprintf(" proc.c-->fork() Tamanio de proc= %d, i= %d \n",proc->sz, i);
         //np->pgdir = proc->pgdir;
         //cprintf(" proc.c-->fork() i= %d \n", i);
-        duplicarMemoria(i, proc, np);
+        duplicarMemoria(i, proc, np); //copia la pagina de stack
         
   }
   np->sz = proc->sz;
@@ -518,7 +533,7 @@ exit(void)
 int
 wait(void)
 {
-  struct proc *p, *p2;
+  struct proc *p;
   int havekids, pid;
 
   acquire(&ptable.lock);
@@ -536,22 +551,14 @@ wait(void)
         kfree(p->kstack);
         p->kstack = 0;
         
-        p2 = p;
         //cprintf("proc.c ()--->wait() p %x; p2 %x\n", p, p2);
-        uint resultado = recorrerTablaProcesosWait(p2);//busco algun proceso que comparta memoria con el actual zombie
-        //while (resultado!= -1){
-            //cprintf("proc.c ()--->wait() proc->pid = %d; proc->eip = %x || p->pid = %d; p->eip = %x \n", proc->pid, proc->tf->eip, p->pid, p->tf->eip);
-            //duplicarMemoriaWait(resultado, p2, p); //divido memoria de los procesos
-            //cprintf("proc.c ()--->wait() resultado %d \n", resultado);
-            //resultado = recorrerTablaProcesosWait(p);
-            //cprintf("proc.c ()--->wait() resultado %d \n", resultado);
-        //}
+        uint resultado = recorrerTablaProcesosWait(p);//busco algun proceso que comparta memoria con el actual zombie
+       
         if (resultado == -1){
             //cprintf("proc.c (%d)--->wait() libero memoria \n", p->pid);
-            //panic("panic attack!!!");
             freevm(p->pgdir);
-            //panic("panic attack!!!");
-        }
+        }else
+            panic("en wait no termino bien recorrerTablaProcesosWait ");
         p->state = UNUSED;
         p->pid = 0;
         p->parent = 0;
