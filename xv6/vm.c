@@ -291,18 +291,13 @@ freevm(pde_t *pgdir)
   if(pgdir == 0)
     panic("freevm: no pgdir");
   deallocuvm(pgdir, KERNBASE, 0);
-  //cprintf("freevm ----- despues de deallocuvm hasta aca llega bien \n");
   for(i = 0; i < NPDENTRIES; i++){
     if(pgdir[i] & PTE_P){
       char * v = p2v(PTE_ADDR(pgdir[i]));
       kfree(v);
-      //cprintf("freevm ----- en el for vuelta numero : %d \n", i);
     }
   }
-  //cprintf("freevm ----- antes de kfree hasta aca llega bien \n");
-  //cprintf("freevm -----  pgdir  %d pid  %d\n",pgdir,proc->pid);
   kfree((char*)pgdir);
-  //cprintf("freevm -----  despues del kfree\n");
 }
 
 // Clear PTE_U on a page. Used to create an inaccessible
@@ -324,9 +319,7 @@ clearptew(pde_t *pgdir, char *uva)
 {
     pte_t *pte;
     if((pte = walkpgdir(pgdir, uva, 0)) == 0)
-        panic("clearptew errror en el walkpgdir ");
-    if(pte == 0)
-      panic("clearptew");
+        panic("clearptew. pte shoul be present");
     *pte &= ~PTE_W;
 }
 
@@ -334,10 +327,8 @@ clearptew(pde_t *pgdir, char *uva)
 void
 cleardtew(pde_t *pgdir, char *uva)
 {
-    //cprintf("antes de sacarle escritura %x\n", &pgdir[PDX(uva)]);
     pde_t *pde = &pgdir[PDX(uva)];
     *pde &= ~PTE_W;
-    //cprintf("despues de sacarle escritura %x\n", &pgdir[PDX(uva)]);
 }
 
 // Set PTE_W on a page. 
@@ -346,9 +337,7 @@ setptew(pde_t *pgdir, char *uva)
 {
     pte_t *pte;
     if((pte = walkpgdir(pgdir, uva,0 )) == 0)
-        panic("setptew errror en el walkpgdir ");
-    if(pte == 0)
-      panic("setptew");
+        panic("setptew. pte shoul be present");
     *pte |= PTE_W;
 }
 
@@ -357,9 +346,7 @@ void
 setdtew(pde_t *pgdir, char *uva)
 { 
     pde_t *pde = &pgdir[PDX(uva)];
-    //cprintf("antes de ponerle escritura %x\n", *pde);
     *pde |= PTE_W;
-    //cprintf("despues de ponerle escritura %x\n", *pde);
 }
 
 // Given a parent process's page table, create a copy
