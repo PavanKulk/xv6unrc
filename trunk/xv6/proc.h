@@ -74,6 +74,5 @@ struct proc {
 //   fixed-size stack
 //   expandable heap
 
-// Enumerado que se utilizara para identificar que elementos
-// de la memoria comparten 2 o mas procesos.
-enum compartenProc { DIRECTORIO, TABLA, PAGINA, NADA };
+// enum that shows the level of memory shared
+enum sharedmemorylevel { DIRECTORY, TABLE, FRAME, NOTHING };
