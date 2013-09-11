@@ -5,6 +5,7 @@
       <df name="user">
         <in>cat.c</in>
         <in>echo.c</in>
+        <in>factorial.c</in>
         <in>fcntl.h</in>
         <in>forksimple.c</in>
         <in>forktest.c</in>
